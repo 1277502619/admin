@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>仿vue异步加载</title>
+    <link href="index.css" rel="stylesheet" />
+    <link href="common.css" rel="stylesheet" />
+    <link rel="shortcut icon" type="image/ico" href="bb.png" /> 
+    <script src="jquery-1.10.1.min.js"></script>
+</head>
+<body>
+<div id="main">
+    <div id="head">
+        <ul class="clearfix"></ul>
+    </div>
+    <div id="content">
+        <div class="left">
+            <ul>
+            </ul>
+        </div>
+        <div class="container">
+
+        </div>
+    </div>
+    <div id="foot">
+        footer
+    </div>
+</div>
+<script>
+let Route={
+    one:{
+        menu:'0',
+        list:'0'
+    },
+    two:{
+        menu:'0',
+        list:'1'
+    },
+    three:{
+        menu: '0',
+        list:'2'
+    },
+    four:{
+        menu: '1',
+        list:'0'
+    },
+    five:{
+        menu: '1',
+        list:'1'
+    },
+    six:{
+        menu: '1',
+        list:'2'
+    }
+}
+let menuList;
+let defaultHref=(window.location.href).split("#")[0];
+function getData(url,type,dataType,treat){
+    $.ajax({ 
+        url:url,
+        type:type,
+        dataType:dataType,
+        success:function(msg){
+            treat(msg)
+        },
+        error:function(msg){
+            alert("网络超时或加载错误")
+        }
+    }); 
+}
+function tab(res){
+    $(".container").html(res);
+}
+function menu(msg){
+    menuList=msg;
+     $("#head ul").html("");
+    $.each(msg, function(key,val){ 
+        if(key==0){
+            $("#head ul").append('<li class="active" onclick="menuClick('+key+',\''+val.menu[0].href+'\',1)">'+val.name+'</li>');
+        }else{
+            $("#head ul").append('<li onclick="menuClick('+key+',\''+val.menu[0].href+'\',1)">'+val.name+'</li>');
+        }
+    });
+    if(Route[suffix_href]){
+        menuClick(Route[suffix_href].menu,suffix_href,1)
+    }else{
+         menuClick(0,msg[0].menu[0].href,1)
+    }
+}
+function menuClick(mIndex,_href,type){
+    $(".left ul").html("");
+    $.each(menuList[mIndex].menu, function(key,val){ 
+        $(".left ul").append('<li onclick="leftClick('+key+',\''+val.href+'\',1)">'+val.menu_name+'</li>');
+    });
+    $("#head li").eq(mIndex).addClass("active").siblings().removeClass("active");
+    if(type=="1"){
+        if(suffix_href==_href){
+            leftClick(Route[suffix_href].list,suffix_href,1);
+        }else{
+            leftClick(0,_href,1);
+        }
+    }
+}
+function leftClick(index,href,type){
+    $(".left li").eq(index).addClass("active").siblings().removeClass("active");
+    getData(href+".html",'get','html',tab);
+    if(type=="1"){
+        history.pushState({type:href},null,defaultHref+"#"+href);
+    }
+}
+function get(){
+    addEventListener("popstate",function(e){
+        console.log(e.state.type)
+        menuClick(Route[e.state.type].menu,e.state.type,0)
+        leftClick(Route[e.state.type].list,e.state.type,0)
+    },false);
+}
+var suffix_href=window.location.hash.split("#")[1];
+getData("demo.json",'get','json',menu);
+get();
+</script>
+</body>
+</html>
